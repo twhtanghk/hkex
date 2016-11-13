@@ -1,0 +1,9 @@
+version: '2'
+services:
+  hkex:
+    image: node
+    volumes:
+      - ${COMPOSEROOT}/hkex:/usr/src/app
+    env_file: 
+      - ../.env
+    entrypoint: top -b -d 1000

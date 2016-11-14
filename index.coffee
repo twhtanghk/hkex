@@ -2,10 +2,11 @@ _ = require 'lodash'
 Promise = require 'bluebird'
 http = Promise.promisifyAll require 'needle'
 cheerio = require 'cheerio'
+moment = require 'moment'
 
 row = (el) ->
   ret = cheerio('td', el).toArray()
-  date: cheerio('span', ret[0]).text()
+  date: moment cheerio('span', ret[0]).text(), 'DD/MM/YYYYHHmm'
   code: cheerio('span', ret[1]).text()
   name:  cheerio('span', ret[2]).text()
   doc: 

@@ -2,10 +2,6 @@ _ = require 'lodash'
 Promise = require 'bluebird'
 http = Promise.promisifyAll require 'needle'
 cheerio = require 'cheerio'
-url =
-  en: 'http://www.hkexnews.hk/listedco/listconews/advancedsearch/search_active_main.aspx'
-  tc: 'http://www.hkexnews.hk/listedco/listconews/advancedsearch/search_active_main_c.aspx'
-  sc: 'http://www.hkexnews.hk/listedco/listconews/advancedsearch/search_active_main_c.aspx'
 
 row = (el) ->
   ret = cheerio('td', el).toArray()
@@ -23,7 +19,7 @@ table = (el) ->
     .toArray()
     .map row
 
-formData = (el, firstPage = false) ->
+params = (el, firstPage = false) ->
   keys = [
     '__VIEWSTATE'
     '__VIEWSTATEENCRYPTED'
@@ -62,20 +58,30 @@ formData = (el, firstPage = false) ->
     ret['ctl00$btnNext.y'] = 1
   return ret
 
-page = (data, lang = 'en') ->
-  http.postAsync url.en, data 
-    .then (res) ->
-      records: table res.body
-      data: formData res.body
+class HKEXNew
+  @$urlRoot:
+    en: 'http://www.hkexnews.hk/listedco/listconews/advancedsearch/search_active_main.aspx'
+    ch: 'http://www.hkexnews.hk/listedco/listconews/advancedsearch/search_active_main_c.aspx'
 
-http
-  .getAsync url['en']
-  .then (res) ->
-    data: formData res.body, true
-  .then (res) ->
-    page res.data
-  .then (res) ->
-    page res.data
-  .then (res) ->
-    console.log res.records
-  .catch console.log
+  models: []
+
+  constructor: (@params, @lang = 'en') ->
+    return
+
+  $fetch: ->
+    http
+      .postAsync HKEXNew.$urlRoot[@lang], @params
+      .then (res) =>
+        @$parse res
+
+  $parse: (res) ->
+    @params = params res.body
+    _.each table(res.body), (model) =>
+      @models.push model
+    @
+
+module.exports = (lang = 'en') ->
+  http
+    .getAsync HKEXNew.$urlRoot[lang]
+    .then (res) ->
+      new HKEXNew params(res.body, true), lang

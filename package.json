@@ -1,6 +1,6 @@
 {
   "name": "hkex",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Web scraper for HKEX latest listed company information",
   "main": "index.js",
   "scripts": {

@@ -6,14 +6,17 @@ moment = require 'moment'
 
 row = (el) ->
   ret = cheerio('td', el).toArray()
-  date: moment cheerio('span', ret[0]).text(), 'DD/MM/YYYYHHmm'
+  type = cheerio('span:first-child', ret[3]).text().split('-')
+  file = /\((.*), (.*)\)/.exec cheerio('span:last-child', ret[3]).text()
+
+  releasedAt: moment(cheerio('span', ret[0]).text(), 'DD/MM/YYYYHHmm').toDate()
   code: cheerio('span', ret[1]).text()
   name:  cheerio('span', ret[2]).text()
-  doc: 
-    type: cheerio('span:first-child', ret[3]).text()
-    name: cheerio('a', ret[3]).text()
-    link: cheerio('a', ret[3]).attr 'href'
-    size: cheerio('span:last-child', ret[3]).text()
+  type: type[0]?.trim()
+  typeDetail: type[1]?.trim()
+  title: cheerio('a', ret[3]).text()
+  link: cheerio('a', ret[3]).attr 'href'
+  size: file[1]
 
 table = (el) ->
   ret = cheerio('table#ctl00_gvMain tr:not([class])', el)

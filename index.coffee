@@ -3,6 +3,7 @@ Promise = require 'bluebird'
 http = Promise.promisifyAll require 'needle'
 cheerio = require 'cheerio'
 moment = require 'moment'
+entities = require 'entities'
 
 row = (el) ->
   ret = cheerio('td', el).toArray()
@@ -10,13 +11,13 @@ row = (el) ->
   file = /\((.*), (.*)\)/.exec cheerio('span:last-child', ret[3]).text()
 
   releasedAt: moment(cheerio('span', ret[0]).text(), 'DD/MM/YYYYHHmm').toDate()
-  code: cheerio('span', ret[1]).text()
-  name:  cheerio('span', ret[2]).text()
+  code: cheerio('span', ret[1]).html().split('<br>').join(',')
+  name:  entities.decodeHTML(cheerio('span', ret[2]).html()).split('<br>').join(',')
   type: type[0]?.trim()
   typeDetail: type[1]?.trim()
   title: cheerio('a', ret[3]).text()
   link: cheerio('a', ret[3]).attr 'href'
-  size: file[1]
+  size: if _.isArray file then file[1] else null
 
 table = (el) ->
   ret = cheerio('table#ctl00_gvMain tr:not([class])', el)
@@ -72,10 +73,16 @@ class HKEXNew
   constructor: (@params, @lang = 'en') ->
     return
 
+  hasNext: true
+
   $fetch: ->
+    if not @hasNext
+      Promise.resolve @
+
     http
       .postAsync HKEXNew.$urlRoot[@lang], @params
       .then (res) =>
+        @hasNext = cheerio("input[name='ctl00$btnNext']", res.body).length != 0
         @$parse res
 
   $parse: (res) ->
@@ -84,8 +91,22 @@ class HKEXNew
       @models.push model
     @
 
-module.exports = (lang = 'en') ->
+module.exports = (opts = {}) ->
+  lang = opts.lang || 'en'
+  dtStart = opts.dtStart || moment().subtract(1, 'months')
+  dtEnd = moment(dtStart).add(1, 'months')
+  now = moment()
+  if now.isBefore dtEnd
+    dtEnd = now
   http
     .getAsync HKEXNew.$urlRoot[lang]
     .then (res) ->
-      new HKEXNew params(res.body, true), lang
+      data = params(res.body, true)
+      data = _.extend data,
+        ctl00$sel_DateOfReleaseFrom_d: dtStart.format 'DD'
+        ctl00$sel_DateOfReleaseFrom_m: dtStart.format 'MM'
+        ctl00$sel_DateOfReleaseFrom_y: dtStart.format 'YYYY'
+        ctl00$sel_DateOfReleaseTo_d: dtEnd.format 'DD'
+        ctl00$sel_DateOfReleaseTo_m: dtEnd.format 'MM'
+        ctl00$sel_DateOfReleaseTo_y: dtEnd.format 'YYYY'
+      new HKEXNew data, lang

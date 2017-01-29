@@ -1,6 +1,7 @@
 _ = require 'lodash'
 Promise = require 'bluebird'
 http = Promise.promisifyAll require 'needle'
+http.defaults mode: 'no-cors'
 cheerio = require 'cheerio'
 moment = require 'moment'
 entities = require 'entities'
@@ -11,7 +12,7 @@ row = (el) ->
   file = /\((.*), (.*)\)/.exec cheerio('span:last-child', ret[3]).text()
 
   releasedAt: moment(cheerio('span', ret[0]).text(), 'DD/MM/YYYYHHmm').toDate()
-  code: cheerio('span', ret[1]).html().split('<br>').join(',')
+  code: cheerio('span', ret[1]).html()?.split('<br>').join(',')
   name:  entities.decodeHTML(cheerio('span', ret[2]).html()).split('<br>').join(',')
   type: type[0]?.trim()
   typeDetail: type[1]?.trim()
@@ -20,9 +21,17 @@ row = (el) ->
   size: if _.isArray file then file[1] else null
 
 table = (el) ->
-  ret = cheerio('table#ctl00_gvMain tr:not([class])', el)
+  if pageCount(el) == ''
+    return []
+
+  cheerio('table#ctl00_gvMain tr:not([class])', el)
     .toArray()
-    .map row
+    .map (tr) ->
+      if cheerio('td', tr).toArray().length == 4
+        row tr
+
+pageCount = (el) ->
+  cheerio('span#ctl00_lblDisplay', el).text()
 
 params = (el, firstPage = false) ->
   keys = [
@@ -76,9 +85,6 @@ class HKEXNew
   hasNext: true
 
   $fetch: ->
-    if not @hasNext
-      Promise.resolve @
-
     http
       .postAsync HKEXNew.$urlRoot[@lang], @params
       .then (res) =>

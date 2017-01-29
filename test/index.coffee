@@ -1,16 +1,15 @@
 moment = require 'moment'
 hkex = require('../index.coffee')
   lang: 'ch'
-  dtStart: moment()
+  dtStart: moment().subtract(2, 'd')
 
-get = (page = 0) ->
+get = () ->
   hkex
     .then (data) ->
-      console.log page
-      console.log data.models
-      data.models = []
-      hkex = data.$fetch()
       if data.hasNext
-        get(page + 1)
+        hkex = data.$fetch()
+        get()
+      else
+        console.log data.models
 
 get()

@@ -24,6 +24,11 @@
     "needle": "^1.3.0"
   },
   "devDependencies": {
-    "coffee-script": "^1.11.1"
+    "browserify": "^13.1.1",
+    "coffee-script": "^1.11.1",
+    "coffeeify": "^2.0.1",
+    "debowerify": "^1.5.0",
+    "gulp": "^3.9.1",
+    "vinyl-source-stream": "^1.1.0"
   }
 }

@@ -75,9 +75,6 @@
     HKEXNew.prototype.hasNext = true;
 
     HKEXNew.prototype.$fetch = function() {
-      if (!this.hasNext) {
-        Promise.resolve(this);
-      }
       return http.postAsync(HKEXNew.$urlRoot[this.lang], this.params).then((function(_this) {
         return function(res) {
           _this.hasNext = cheerio("input[name='ctl00$btnNext']", res.body).length !== 0;

@@ -1,11 +1,7 @@
 version: '2'
 services:
   hkex:
-    image: node
-    ports:
-      - 8111:8080
-    volumes:
-      - ${COMPOSEROOT}/hkex:/usr/src/app
+    image: twhtanghk/hkex
     env_file: 
       - ../.env
     entrypoint: top -b -d 1000

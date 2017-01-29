@@ -13,17 +13,13 @@ hkex = require('hkex')
   lang: 'ch'
   dtStart: moment()
 
-get = (page = 0) ->
+get = ->
   hkex
     .then (data) ->
-      console.log page
-      console.log data.models
-      data
-    .then (data) ->
-      data.models = []
-      hkex = data.$fetch()
       if data.hasNext
-        get(page + 1)
+        hkex = data.$fetch()
+        return get()
+      console.log data.models
 
 get()
 ```

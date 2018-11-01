@@ -74,8 +74,8 @@ params = (el, firstPage = false) ->
 
 class HKEXNew
   @$urlRoot:
-    en: 'http://www.hkexnews.hk/listedco/listconews/advancedsearch/search_active_main.aspx'
-    ch: 'http://www.hkexnews.hk/listedco/listconews/advancedsearch/search_active_main_c.aspx'
+    en: process.env.URLEN || 'http://www.hkexnews.hk/listedco/listconews/advancedsearch/search_active_main.aspx'
+    ch: process.env.URLCH || 'http://www.hkexnews.hk/listedco/listconews/advancedsearch/search_active_main_c.aspx'
 
   models: []
 

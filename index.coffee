@@ -74,28 +74,28 @@ params = (el, firstPage = false) ->
 
 class HKEXNew
   @$urlRoot:
-    en: process.env.URLEN || 'http://www.hkexnews.hk/listedco/listconews/advancedsearch/search_active_main.aspx'
-    ch: process.env.URLCH || 'http://www.hkexnews.hk/listedco/listconews/advancedsearch/search_active_main_c.aspx'
-
-  models: []
+    en: process.env.URLEN || 'http://www3.hkexnews.hk/listedco/listconews/advancedsearch/search_active_main.aspx'
+    ch: process.env.URLCH || 'http://www3.hkexnews.hk/listedco/listconews/advancedsearch/search_active_main_c.aspx'
 
   constructor: (@params, @lang = 'en') ->
     return
 
   hasNext: true
 
-  $fetch: ->
-    http
-      .postAsync HKEXNew.$urlRoot[@lang], @params
-      .then (res) =>
-        @hasNext = cheerio("input[name='ctl00$btnNext']", res.body).length != 0
-        @$parse res
+  iterPage: ->
+    while @hasNext
+      res = await http.postAsync HKEXNew.$urlRoot[@lang], @params
+      @hasNext = cheerio("input[name='ctl00$btnNext']", res.body).length != 0
+      yield @$parse res
+
+  iterAll: ->
+    for await page from @iterPage()
+      for i in page
+        yield i
 
   $parse: (res) ->
     @params = params res.body
-    _.each table(res.body), (model) =>
-      @models.push model
-    @
+    table(res.body)
 
 module.exports = (opts = {}) ->
   lang = opts.lang || 'en'
@@ -104,15 +104,14 @@ module.exports = (opts = {}) ->
   now = moment()
   if now.isBefore dtEnd
     dtEnd = now
-  http
-    .getAsync HKEXNew.$urlRoot[lang]
-    .then (res) ->
-      data = params(res.body, true)
-      data = _.extend data,
-        ctl00$sel_DateOfReleaseFrom_d: dtStart.format 'DD'
-        ctl00$sel_DateOfReleaseFrom_m: dtStart.format 'MM'
-        ctl00$sel_DateOfReleaseFrom_y: dtStart.format 'YYYY'
-        ctl00$sel_DateOfReleaseTo_d: dtEnd.format 'DD'
-        ctl00$sel_DateOfReleaseTo_m: dtEnd.format 'MM'
-        ctl00$sel_DateOfReleaseTo_y: dtEnd.format 'YYYY'
-      new HKEXNew data, lang
+  res = await http.getAsync HKEXNew.$urlRoot[lang]
+  data = params(res.body, true)
+  data = _.extend data,
+    ctl00$sel_DateOfReleaseFrom_d: dtStart.format 'DD'
+    ctl00$sel_DateOfReleaseFrom_m: dtStart.format 'MM'
+    ctl00$sel_DateOfReleaseFrom_y: dtStart.format 'YYYY'
+    ctl00$sel_DateOfReleaseTo_d: dtEnd.format 'DD'
+    ctl00$sel_DateOfReleaseTo_m: dtEnd.format 'MM'
+    ctl00$sel_DateOfReleaseTo_y: dtEnd.format 'YYYY'
+  hkex = new HKEXNew data, lang
+  yield from hkex.iterAll()

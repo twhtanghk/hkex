@@ -1,9 +1,11 @@
 moment = require 'moment'
-HKEXNew = require('../index.coffee')
-hkex = new HKEXNew
-  lang: 'ch'
-  dtStart: moment().subtract(1, 'days')
+{HKEXNew, HKEXNewCron, reverse} = require('../index.coffee')
+
+hkex = new HKEXNew()
 
 do ->
-  for await i from hkex.iterAll()
+  for await i from reverse hkex.iterAll()
     console.log i
+
+new HKEXNewCron()
+  .on 'data', console.log

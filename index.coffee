@@ -78,9 +78,9 @@ class HKEXNew
     ch: process.env.URLCH || 'http://www3.hkexnews.hk/listedco/listconews/advancedsearch/search_active_main_c.aspx'
 
   constructor: ({@dtStart, @dtEnd, @lang} = {}) ->
-    @lang ?= 'en'
-    @dtStart ?= moment().subtract 1, 'months'
-    @dtEnd ?= moment.min moment(), moment(@dtStart).add(1, 'months')
+    @lang ?= 'ch'
+    @dtStart ?= moment().subtract 1, 'days'
+    @dtEnd ?= moment()
 
   iterPage: ->
     res = await http.getAsync HKEXNew.$urlRoot[@lang]
@@ -107,4 +107,37 @@ class HKEXNew
     @params = params res.body
     table(res.body)
 
-module.exports = HKEXNew
+reverse = (iterator) ->
+  {value, done} = await iterator.next()
+  if not done
+    yield from reverse iterator
+  else
+    return
+  yield value
+
+EventEmitter = require 'events'
+
+class HKEXNewCron extends EventEmitter
+  last: null
+
+  constructor: (@crontab) ->
+    super()
+    @crontab ?= [
+      # run per minute for every weekday from 09:00 - 16:00
+      "0 */1 9-15 * * * 1-5"
+      # run per 30 minute from 00-8:00 or 16:00 - 23:00 for everyday
+      "0 */30 0-8,16-23 * * * *"
+    ]
+    _.map @crontab, (at) =>
+      require 'node-schedule'
+        .scheduleJob at, =>
+          console.log "get news starting from #{@last?.toString()} at #{new Date().toString()}"
+          hkex = new HKEXNew dtStart: @last
+          for await i from reverse hkex.iterAll()
+            releasedAt = moment i.releasedAt
+            @last ?= releasedAt
+            if @last.isBefore releasedAt
+              @emit 'data', i
+            @last = moment.max @last, releasedAt
+
+module.exports = {HKEXNew, HKEXNewCron, reverse}

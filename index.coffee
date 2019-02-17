@@ -77,15 +77,25 @@ class HKEXNew
     en: process.env.URLEN || 'http://www3.hkexnews.hk/listedco/listconews/advancedsearch/search_active_main.aspx'
     ch: process.env.URLCH || 'http://www3.hkexnews.hk/listedco/listconews/advancedsearch/search_active_main_c.aspx'
 
-  constructor: (@params, @lang = 'en') ->
-    return
-
-  hasNext: true
+  constructor: ({@dtStart, @dtEnd, @lang} = {}) ->
+    @lang ?= 'en'
+    @dtStart ?= moment().subtract 1, 'months'
+    @dtEnd ?= moment.min moment(), moment(@dtStart).add(1, 'months')
 
   iterPage: ->
-    while @hasNext
+    res = await http.getAsync HKEXNew.$urlRoot[@lang]
+    @params = params res.body, true
+    @params = _.extend @params,
+      ctl00$sel_DateOfReleaseFrom_d: @dtStart.format 'DD'
+      ctl00$sel_DateOfReleaseFrom_m: @dtStart.format 'MM'
+      ctl00$sel_DateOfReleaseFrom_y: @dtStart.format 'YYYY'
+      ctl00$sel_DateOfReleaseTo_d: @dtEnd.format 'DD'
+      ctl00$sel_DateOfReleaseTo_m: @dtEnd.format 'MM'
+      ctl00$sel_DateOfReleaseTo_y: @dtEnd.format 'YYYY'
+    hasNext = true
+    while hasNext
       res = await http.postAsync HKEXNew.$urlRoot[@lang], @params
-      @hasNext = cheerio("input[name='ctl00$btnNext']", res.body).length != 0
+      hasNext = cheerio("input[name='ctl00$btnNext']", res.body).length != 0
       yield @$parse res
 
   iterAll: ->
@@ -97,21 +107,4 @@ class HKEXNew
     @params = params res.body
     table(res.body)
 
-module.exports = (opts = {}) ->
-  lang = opts.lang || 'en'
-  dtStart = opts.dtStart || moment().subtract(1, 'months')
-  dtEnd = moment(dtStart).add(1, 'months')
-  now = moment()
-  if now.isBefore dtEnd
-    dtEnd = now
-  res = await http.getAsync HKEXNew.$urlRoot[lang]
-  data = params(res.body, true)
-  data = _.extend data,
-    ctl00$sel_DateOfReleaseFrom_d: dtStart.format 'DD'
-    ctl00$sel_DateOfReleaseFrom_m: dtStart.format 'MM'
-    ctl00$sel_DateOfReleaseFrom_y: dtStart.format 'YYYY'
-    ctl00$sel_DateOfReleaseTo_d: dtEnd.format 'DD'
-    ctl00$sel_DateOfReleaseTo_m: dtEnd.format 'MM'
-    ctl00$sel_DateOfReleaseTo_y: dtEnd.format 'YYYY'
-  hkex = new HKEXNew data, lang
-  yield from hkex.iterAll()
+module.exports = HKEXNew

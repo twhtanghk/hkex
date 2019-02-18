@@ -115,13 +115,13 @@ reverse = (iterator) ->
     return
   yield value
 
-EventEmitter = require 'events'
+{Readable} = require 'stream'
 
-class HKEXNewCron extends EventEmitter
+class HKEXNewCron extends Readable
   last: null
 
-  constructor: (@crontab) ->
-    super()
+  constructor: ({@crontab} = {}) ->
+    super objectMode: true
     @crontab ?= [
       # run per minute for every weekday from 09:00 - 16:00
       "0 */1 9-15 * * * 1-5"
@@ -139,5 +139,8 @@ class HKEXNewCron extends EventEmitter
             if @last.isBefore releasedAt
               @emit 'data', i
             @last = moment.max @last, releasedAt
+
+  _read: ->
+    false
 
 module.exports = {HKEXNew, HKEXNewCron, reverse}

@@ -158,4 +158,19 @@ class HKEXNewAlert extends Transform
       @push data
     cb()
 
-module.exports = {HKEXNew, HKEXNewCron, HKEXNewAlert, reverse}
+class HKEXNewMqtt extends Transform
+  constructor: ->
+    super objectMode: true
+    @mqtt = require 'mqtt'
+      .connect process.env.MQTTURL,
+        username: process.env.MQTTUSER
+        clientId: 'hkex news scraper'
+      .on 'connect', ->
+        console.log 'mqtt connected'
+
+  _transform: (data, encoding, cb) ->
+    @mqtt.publish process.env.MQTTTOPIC, JSON.stringify(data)
+    @push data
+    cb()
+
+module.exports = {HKEXNew, HKEXNewCron, HKEXNewAlert, HKEXNewMqtt, reverse}

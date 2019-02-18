@@ -1,5 +1,5 @@
 moment = require 'moment'
-{HKEXNew, HKEXNewCron, HKEXNewAlert, reverse} = require('../index.coffee')
+{HKEXNew, HKEXNewCron, HKEXNewAlert, HKEXNewMqtt, reverse} = require('../index.coffee')
 {Writable} = require 'stream'
 
 hkex = new HKEXNew()
@@ -10,6 +10,7 @@ do ->
 
 new HKEXNewCron()
   .pipe new HKEXNewAlert()
+  .pipe new HKEXNewMqtt()
   .pipe new Writable objectMode: true, write: (data, encoding, cb) ->
     console.log data
     cb()

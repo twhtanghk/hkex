@@ -115,7 +115,7 @@ reverse = (iterator) ->
     return
   yield value
 
-{Readable} = require 'stream'
+{Readable, Transform} = require 'stream'
 
 class HKEXNewCron extends Readable
   last: null
@@ -143,4 +143,19 @@ class HKEXNewCron extends Readable
   _read: ->
     false
 
-module.exports = {HKEXNew, HKEXNewCron, reverse}
+class HKEXNewAlert extends Transform
+  constructor: ({@pattern} = {}) ->
+    super objectMode: true
+    @pattern ?= new RegExp process.env.ALERT
+
+  match: (data) ->
+    @pattern.test(data.typeDetail) or 
+    @pattern.test(data.type) or
+    @pattern.test(data.title)
+
+  _transform: (data, encoding, cb) ->
+    if @match data
+      @push data
+    cb()
+
+module.exports = {HKEXNew, HKEXNewCron, HKEXNewAlert, reverse}

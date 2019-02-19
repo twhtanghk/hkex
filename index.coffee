@@ -159,17 +159,22 @@ class HKEXNewAlert extends Transform
     cb()
 
 class HKEXNewMqtt extends Transform
-  constructor: ->
+  constructor: ({@url, @client, @user, @topic} = {})->
     super objectMode: true
+    @url ?= process.env.MQTTURL
+    @client ?= process.env.MQTTCLIENT
+    @user ?= process.env.MQTTUSER
+    @topic ?= process.env.MQTTTOPIC
     @mqtt = require 'mqtt'
-      .connect process.env.MQTTURL,
-        username: process.env.MQTTUSER
-        clientId: 'hkex news scraper'
+      .connect @url,
+        username: @user
+        clientId: @client
+        clean: true
       .on 'connect', ->
         console.log 'mqtt connected'
 
   _transform: (data, encoding, cb) ->
-    @mqtt.publish process.env.MQTTTOPIC, JSON.stringify(data)
+    @mqtt.publish @topic, JSON.stringify(data)
     @push data
     cb()
 

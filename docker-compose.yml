@@ -4,4 +4,3 @@ services:
     image: twhtanghk/hkex
     env_file: 
       - ./.env
-    command: npm test

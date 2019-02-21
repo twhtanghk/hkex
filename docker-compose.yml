@@ -3,10 +3,5 @@ services:
   hkex:
     image: twhtanghk/hkex
     env_file: 
-      - ../.env
-    entrypoint: top -b -d 1000
-
-networks:
-  default:
-    driver_opts:
-      com.docker.network.driver.mtu: 1440
+      - ./.env
+    command: npm test

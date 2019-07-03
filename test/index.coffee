@@ -1,16 +1,7 @@
-moment = require 'moment'
-{HKEXNew, HKEXNewCron, HKEXNewAlert, HKEXNewMqtt, reverse} = require('../index.coffee')
-{Writable} = require 'stream'
+{HKEXNew, reverse} = require('../index.coffee')
 
 hkex = new HKEXNew()
 
 do ->
-  for await i from reverse hkex.iterAll()
+  for await i from reverse hkex.iter()
     console.log i
-
-new HKEXNewCron()
-  .pipe new HKEXNewAlert()
-  .pipe new HKEXNewMqtt()
-  .pipe new Writable objectMode: true, write: (data, encoding, cb) ->
-    console.log data
-    cb()

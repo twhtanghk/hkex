@@ -1,5 +1,6 @@
 _ = require 'lodash'
 http = require 'needle'
+moment = require 'moment'
 
 class HKEXNew
   @url: _.template process.env.URL || 'https://www1.hkexnews.hk/ncms/json/eds/lcisehk1relsdc_<%=page%>.json'
@@ -10,7 +11,7 @@ class HKEXNew
       for alert in res.body.newsInfoLst
         type = alert.lTxt.split ' - '
         yield
-          releasedAt: new Date alert.relTime
+          releasedAt: moment(alert.relTime, 'DD-MM-YYYY HH:mm').toDate()
           code: alert.stock[0].sc
           name: alert.stock[0].sn
           type: type[0]

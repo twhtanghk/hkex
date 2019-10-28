@@ -28,4 +28,64 @@ reverse = (iterator) ->
     return
   yield value
 
-module.exports = {HKEXNew, reverse}
+XLSX = require 'xlsx'
+{Transform} = require 'stream'
+
+range = (sheet) ->
+  pattern = /([A-Z]+)([0-9]+)/
+  cells = _.filter _.keys(sheet), (key) ->
+    pattern.test key
+  row = _.max _.map cells, (key) ->
+    ret = key.match pattern
+    parseInt ret[2]
+  col = _.max _.map cells, (key) ->
+    ret = key.match pattern
+    ret[1]
+  return "A4:#{col}#{row}"
+
+class Buffer extends Transform
+  buffer: []
+
+  constructor: (opts = {readableObjectMode: true, writableObjectMode: true}) ->
+    super opts
+  
+  _transform: (data, encoding, cb) ->
+    @buffer.push data
+    cb()
+
+  end: ->
+    data = require('buffer').Buffer.concat(@buffer)
+    {Sheets} = XLSX.read data, type: 'buffer'
+    opts =
+      range: range Sheets.ListOfSecurities
+      header: [
+        'code'
+        'name'
+        'category'
+        'sub-category'
+        'lot'
+        'value'
+        'isin'
+        'expiry date'
+        'stamp duty'
+        'shortsell eligible'
+        'cas eligible'
+        'vcm eligible'
+        'stock options'
+        'stock futures'
+        'ccass'
+        'etf'
+        'debt securities board lot'
+        'debt securities investor type'
+      ]
+    for row in XLSX.utils.sheet_to_json Sheets.ListOfSecurities, opts
+      @push row
+    @
+
+HKEXList = ->
+  streamToIterator = require('stream-to-iterator')
+  stream = http.get process.env.STOCKLIST
+    .pipe new Buffer()
+  streamToIterator stream
+
+module.exports = {HKEXList, HKEXNew, reverse}

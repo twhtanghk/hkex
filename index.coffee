@@ -83,9 +83,7 @@ class Buffer extends Transform
     @
 
 HKEXList = ->
-  streamToIterator = require('stream-to-iterator')
-  stream = http.get process.env.STOCKLIST
+  http.get process.env.STOCKLIST
     .pipe new Buffer()
-  streamToIterator stream
 
 module.exports = {HKEXList, HKEXNew, reverse}

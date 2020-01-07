@@ -83,7 +83,7 @@ class Buffer extends Transform
     @
 
 HKEXList = ->
-  http.get process.env.STOCKLIST
+  http.get process.env.STOCKLIST || 'https://www.hkex.com.hk/eng/services/trading/securities/securitieslists/ListOfSecurities.xlsx'
     .pipe new Buffer()
 
 module.exports = {HKEXList, HKEXNew, reverse}

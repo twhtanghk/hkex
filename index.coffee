@@ -86,4 +86,19 @@ HKEXList = ->
   http.get process.env.STOCKLIST || 'https://www.hkex.com.hk/chi/services/trading/securities/securitieslists/ListOfSecurities_c.xlsx'
     .pipe new Buffer()
 
-module.exports = {HKEXList, HKEXNew, reverse}
+service =
+  details: (code) ->
+    url = process.env.STOCK_URL || "https://ttsoon.ml/hkexkoa/api/stock/#{code}"
+    url = url.replace '#{code}', code
+    (await http 'get', url).body
+  category: (code) ->
+    details = (await service.details code)
+    [details['category'], details['sub-category']]
+  name: (code) ->
+    (await service.details code).name
+  isETF: (code) ->
+    '交易所買賣產品' == (await service.category code)[0]
+  isEquity: (code) ->
+    '股本' == (await service.category code)[0]
+
+module.exports = {HKEXList, HKEXNew, reverse, service}

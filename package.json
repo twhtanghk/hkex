@@ -2,7 +2,7 @@
   "name": "hkex",
   "version": "0.0.8",
   "description": "Web scraper for HKEX latest listed company information",
-  "main": "index.js",
+  "main": "index.coffee",
   "scripts": {
     "test": "node_modules/.bin/coffee test/index.coffee"
   },
@@ -26,7 +26,7 @@
     "xlsx": "^0.15.1"
   },
   "devDependencies": {
-    "mqtt": "^2.18.8",
+    "mqtt": "^3.0.0",
     "node-schedule": "^1.3.2"
   }
 }

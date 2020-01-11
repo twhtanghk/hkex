@@ -84,6 +84,8 @@ class Buffer extends Transform
 
 HKEXList = ->
   http.get process.env.STOCKLIST || 'https://www.hkex.com.hk/chi/services/trading/securities/securitieslists/ListOfSecurities_c.xlsx'
+    .on 'err', (err) ->
+      throw err
     .pipe new Buffer()
 
 service =

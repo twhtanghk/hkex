@@ -54,33 +54,36 @@ class Buffer extends Transform
     cb()
 
   end: ->
-    data = require('buffer').Buffer.concat(@buffer)
-    {Sheets} = XLSX.read data, type: 'buffer'
-    opts =
-      range: range Sheets.ListOfSecurities
-      header: [
-        'code'
-        'name'
-        'category'
-        'sub-category'
-        'lot'
-        'value'
-        'isin'
-        'expiry date'
-        'stamp duty'
-        'shortsell eligible'
-        'cas eligible'
-        'vcm eligible'
-        'stock options'
-        'stock futures'
-        'ccass'
-        'etf'
-        'debt securities board lot'
-        'debt securities investor type'
-      ]
-    for row in XLSX.utils.sheet_to_json Sheets.ListOfSecurities, opts
-      @push row
-    @
+    try
+      data = require('buffer').Buffer.concat(@buffer)
+      {Sheets} = XLSX.read data, type: 'buffer'
+      opts =
+        range: range Sheets.ListOfSecurities
+        header: [
+          'code'
+          'name'
+          'category'
+          'sub-category'
+          'lot'
+          'value'
+          'isin'
+          'expiry date'
+          'stamp duty'
+          'shortsell eligible'
+          'cas eligible'
+          'vcm eligible'
+          'stock options'
+          'stock futures'
+          'ccass'
+          'etf'
+          'debt securities board lot'
+          'debt securities investor type'
+        ]
+      for row in XLSX.utils.sheet_to_json Sheets.ListOfSecurities, opts
+        @push row
+      @
+    catch err
+      @emit 'error', err
 
 HKEXList = ->
   http.get process.env.STOCKLIST || 'https://www.hkex.com.hk/chi/services/trading/securities/securitieslists/ListOfSecurities_c.xlsx'

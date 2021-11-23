@@ -2,9 +2,16 @@
 
 hkex = new HKEXNew()
 
+match = ({typeDetail, type, title}) ->
+  pattern = new RegExp process.env.ALERT
+  pattern.test(typeDetail) or
+  pattern.test(type) or
+  pattern.test(title)
+  
 do ->
   for await i from reverse hkex.iter()
-    console.log i
+    if match i
+      console.log i
 
 do ->
   for await row from HKEXList()

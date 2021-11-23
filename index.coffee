@@ -6,6 +6,7 @@ class HKEXNew
   @url: _.template process.env.URL || 'https://www1.hkexnews.hk/ncms/json/eds/lcisehk1relsdc_<%=page%>.json'
 
   iter: ->
+    # hkex only allowed to fetch latest 5 pages of news alert in descending order
     for i in [1..5]
       res = await http 'get', HKEXNew.url page: i
       for alert in res.body.newsInfoLst

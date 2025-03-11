@@ -23,7 +23,6 @@
     "lodash": "^4.16.6",
     "moment": "^2.16.0",
     "needle": "^2.2.4",
-    "xlsx": "^0.17.4"
-  },
-  "devDependencies": {}
+    "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz"
+  }
 }

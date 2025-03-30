@@ -1,6 +1,9 @@
-_ = require 'lodash'
-http = require 'needle'
-moment = require 'moment'
+import _ from 'lodash'
+import http from 'needle'
+import moment from 'moment'
+import {Buffer} from 'buffer'
+import {Transform} from 'stream'
+import {read, utils} from 'xlsx'
 
 class HKEXNew
   @url: _.template process.env.URL || 'https://www1.hkexnews.hk/ncms/json/eds/lcisehk1relsdc_<%=page%>.json'
@@ -29,9 +32,6 @@ reverse = (iterator) ->
     return
   yield value
 
-XLSX = require 'xlsx'
-{Transform} = require 'stream'
-
 range = (sheet) ->
   pattern = /([A-Z]+)([0-9]+)/
   cells = _.filter _.keys(sheet), (key) ->
@@ -44,7 +44,7 @@ range = (sheet) ->
     ret[1]
   return "A4:#{col}#{row}"
 
-class Buffer extends Transform
+class XLSBuffer extends Transform
   buffer: []
 
   constructor: (opts = {readableObjectMode: true, writableObjectMode: true}) ->
@@ -56,8 +56,8 @@ class Buffer extends Transform
 
   end: ->
     try
-      data = require('buffer').Buffer.concat(@buffer)
-      {Sheets} = XLSX.read data, type: 'buffer'
+      data = Buffer.concat @buffer
+      {Sheets} = read data, type: 'buffer'
       opts =
         range: range Sheets.ListOfSecurities
         header: [
@@ -80,7 +80,7 @@ class Buffer extends Transform
           'debt securities board lot'
           'debt securities investor type'
         ]
-      for row in XLSX.utils.sheet_to_json Sheets.ListOfSecurities, opts
+      for row in utils.sheet_to_json Sheets.ListOfSecurities, opts
         @push row
       @
     catch err
@@ -90,7 +90,7 @@ HKEXList = ->
   http.get process.env.STOCKLIST || 'https://www.hkex.com.hk/chi/services/trading/securities/securitieslists/ListOfSecurities_c.xlsx'
     .on 'err', (err) ->
       throw err
-    .pipe new Buffer()
+    .pipe new XLSBuffer()
 
 service =
   details: (code) ->
@@ -107,4 +107,5 @@ service =
   isEquity: (code) ->
     '股本' == (await service.category code)[0]
 
-module.exports = {HKEXList, HKEXNew, reverse, service}
+export default {HKEXList, HKEXNew, reverse, service}
+export {HKEXList, HKEXNew, reverse, service}

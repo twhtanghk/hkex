@@ -1,4 +1,5 @@
 {
+  "type": "module",
   "name": "hkex",
   "version": "0.0.8",
   "description": "Web scraper for HKEX latest listed company information",
@@ -17,6 +18,7 @@
   },
   "homepage": "https://github.com/twhtanghk/hkex#readme",
   "dependencies": {
+    "axios": "^1.8.4",
     "bluebird": "^3.4.6",
     "cheerio": "^1.0.0-rc.2",
     "coffeescript": "^2.3.2",

@@ -1,4 +1,4 @@
-{HKEXList, HKEXNew, reverse} = require('../index.coffee')
+import {HKEXList, HKEXNew, reverse} from '../index.js'
 
 hkex = new HKEXNew()
 

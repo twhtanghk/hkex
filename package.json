@@ -5,7 +5,7 @@
   "description": "Web scraper for HKEX latest listed company information",
   "main": "index.coffee",
   "scripts": {
-    "test": "node_modules/.bin/coffee test/index.coffee"
+    "test": "node test/index.js"
   },
   "repository": {
     "type": "git",

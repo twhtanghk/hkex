@@ -1,8 +1,7 @@
 import _ from 'lodash'
-import http from 'needle'
 import moment from 'moment'
 import {Buffer} from 'buffer'
-import {Transform} from 'stream'
+import {Readable, Transform} from 'stream'
 import {read, utils} from 'xlsx'
 
 class HKEXNew
@@ -11,8 +10,10 @@ class HKEXNew
   iter: ->
     # hkex only allowed to fetch latest 5 pages of news alert in descending order
     for i in [1..5]
-      res = await http 'get', HKEXNew.url page: i
-      for alert in res.body.newsInfoLst
+      data = await fetch HKEXNew.url page: i
+        .then (res) ->
+          await res.json()
+      for alert in data.newsInfoLst
         type = alert.lTxt.split ' - '
         yield
           releasedAt: moment(alert.relTime, 'DD-MM-YYYY HH:mm').toDate()
@@ -87,10 +88,12 @@ class XLSBuffer extends Transform
       @emit 'error', err
 
 HKEXList = ->
-  http.get process.env.STOCKLIST || 'https://www.hkex.com.hk/chi/services/trading/securities/securitieslists/ListOfSecurities_c.xlsx'
-    .on 'err', (err) ->
-      throw err
-    .pipe new XLSBuffer()
+  url =process.env.STOCKLIST || 'https://www.hkex.com.hk/chi/services/trading/securities/securitieslists/ListOfSecurities_c.xlsx'
+  await fetch url
+    .then (res) ->
+      Readable
+        .from [Buffer.from await res.arrayBuffer()]
+        .pipe new XLSBuffer()
 
 service =
   details: (code) ->

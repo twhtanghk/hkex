@@ -3,8 +3,6 @@ var HKEXList, HKEXNew, XLSBuffer, range, reverse, service;
 
 import _ from 'lodash';
 
-import http from 'needle';
-
 import moment from 'moment';
 
 import {
@@ -12,6 +10,7 @@ import {
 } from 'buffer';
 
 import {
+  Readable,
   Transform
 } from 'stream';
 
@@ -23,16 +22,18 @@ import {
 HKEXNew = (function() {
   class HKEXNew {
     async * iter() {
-      var alert, i, j, res, results, type;
+      var alert, data, i, j, results, type;
 // hkex only allowed to fetch latest 5 pages of news alert in descending order
       results = [];
       for (i = j = 1; j <= 5; i = ++j) {
-        res = (await http('get', HKEXNew.url({
+        data = (await fetch(HKEXNew.url({
           page: i
-        })));
+        })).then(async function(res) {
+          return (await res.json());
+        }));
         results.push((yield* (function*() {
           var k, len, ref, results1;
-          ref = res.body.newsInfoLst;
+          ref = data.newsInfoLst;
           results1 = [];
           for (k = 0, len = ref.length; k < len; k++) {
             alert = ref[k];
@@ -137,10 +138,12 @@ XLSBuffer = (function() {
 
 }).call(this);
 
-HKEXList = function() {
-  return http.get(process.env.STOCKLIST || 'https://www.hkex.com.hk/chi/services/trading/securities/securitieslists/ListOfSecurities_c.xlsx').on('err', function(err) {
-    throw err;
-  }).pipe(new XLSBuffer());
+HKEXList = async function() {
+  var url;
+  url = process.env.STOCKLIST || 'https://www.hkex.com.hk/chi/services/trading/securities/securitieslists/ListOfSecurities_c.xlsx';
+  return (await fetch(url).then(async function(res) {
+    return Readable.from([Buffer.from((await res.arrayBuffer()))]).pipe(new XLSBuffer());
+  }));
 };
 
 service = {

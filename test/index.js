@@ -31,7 +31,7 @@ match = function({typeDetail, type, title}) {
 
 (async function() {
   var ref, results, row;
-  ref = HKEXList();
+  ref = (await HKEXList());
   results = [];
   for await (row of ref) {
     results.push(console.log(row));

@@ -16,3 +16,4 @@ do ->
 do ->
   for await row from await HKEXList()
     console.log row
+  console.log 'end'

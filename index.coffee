@@ -83,6 +83,7 @@ class XLSBuffer extends Transform
         ]
       for row in utils.sheet_to_json Sheets.ListOfSecurities, opts
         @push row
+      @push null
       @
     catch err
       @emit 'error', err

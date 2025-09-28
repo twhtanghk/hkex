@@ -30,11 +30,10 @@ match = function({typeDetail, type, title}) {
 })();
 
 (async function() {
-  var ref, results, row;
+  var ref, row;
   ref = (await HKEXList());
-  results = [];
   for await (row of ref) {
-    results.push(console.log(row));
+    console.log(row);
   }
-  return results;
+  return console.log('end');
 })();

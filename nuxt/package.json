@@ -1,7 +1,7 @@
 {
   "name": "nuxt-app",
-  "private": true,
   "type": "module",
+  "private": true,
   "scripts": {
     "build": "nuxt build",
     "dev": "nuxt dev",
@@ -10,10 +10,10 @@
     "postinstall": "nuxt prepare"
   },
   "dependencies": {
-    "@nuxt/ui": "^3.0.2",
-    "nuxt": "^3.16.1",
-    "typescript": "^5.8.2",
-    "vue": "^3.5.13",
-    "vue-router": "^4.5.0"
+    "@nuxt/ui": "^4.0.0",
+    "nuxt": "^4.1.2",
+    "typescript": "^5.9.2",
+    "vue": "^3.5.21",
+    "vue-router": "^4.5.1"
   }
 }

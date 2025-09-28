@@ -123,6 +123,7 @@ XLSBuffer = (function() {
           row = ref[j];
           this.push(row);
         }
+        this.push(null);
         return this;
       } catch (error) {
         err = error;

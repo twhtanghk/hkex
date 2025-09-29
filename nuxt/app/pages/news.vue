@@ -1,4 +1,6 @@
 <template>
+  <div>
+    <UInput v-model='filter' @keyup.enter.prevent='refresh'/>
   <UTable sticky :data="msgs" :columns="columns">
     <template #code-cell="{row}">
       <ULink :to="chart(row)" target='blank'>
@@ -11,10 +13,11 @@
       </ULink>
     </template>
   </UTable>
+  </div>
 </template>
 
 <script setup>
-import {reactive} from 'vue'
+import {reactive, ref} from 'vue'
 import {HKEXNew} from '../index.js'
 
 function chart(row) {
@@ -23,11 +26,12 @@ function chart(row) {
 }
 
 function url(path) {
-  let a = URL.parse(HKEXNew.url({page: 0}))
-  return a.origin + path
+  let {origin} = URL.parse(HKEXNew.url({page: 0}))
+  return origin + path
 }
 
 const msgs = reactive([])
+const filter = ref('')
 const columns = [
   { accessorKey: 'code', header: 'Code' },
   { accessorKey: 'name', header: 'Name' },
@@ -37,10 +41,15 @@ const columns = [
   { accessorKey: 'releasedAt', header: 'Date' }
 ]
 
-let {data} = await useFetch('/api/news')
-for (const i of data.value) {
-  msgs.push(i)
+async function refresh() {
+  msgs.splice(0)
+  let {data} = await useFetch('/api/news', {query: {filter}})
+  for (const i of data.value) {
+    msgs.push(i)
+  }
 }
+
+await refresh()
 </script>
 
 <style scoped>

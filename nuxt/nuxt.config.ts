@@ -5,7 +5,7 @@ export default defineNuxtConfig({
   modules: ['@nuxt/ui'],
   build: {
     commonjsOptions: {
-       include: ['../index.js', /node_modules/],
+       include: [/node_modules/],
         transformMixedEsModules: true
     }
   },

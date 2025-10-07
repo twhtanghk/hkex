@@ -18,7 +18,7 @@
 
 <script setup>
 import {reactive, ref} from 'vue'
-import {HKEXNew} from '../index.js'
+import {HKEXNew} from 'hkex/index.js'
 
 function chart(row) {
   let code = Number(row.original.code).toString()

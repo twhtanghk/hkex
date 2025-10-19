@@ -3,8 +3,9 @@
   "name": "hkex",
   "version": "0.0.8",
   "description": "Web scraper for HKEX latest listed company information",
-  "main": "index.coffee",
+  "main": "index.js",
   "scripts": {
+    "build": "coffee -c index.coffee",
     "test": "node test/index.js"
   },
   "repository": {
